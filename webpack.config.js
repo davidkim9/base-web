@@ -1,23 +1,38 @@
 const path = require('path');
 const webpack = require('webpack');
 
+const isProduction = process.env.NODE_ENV === 'production';
+
+let devtool, plugins;
+let entry = { index: ['./src/index.js'] };
+let hints = 'warning';
+let output = {
+  path: path.resolve(__dirname, 'dist'),
+  filename: '[name].bundle.js',
+  publicPath: '/dist/',
+};
+
+if (isProduction === false) {
+  entry.index.unshift('webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000');
+  output.hotUpdateChunkFilename = '.hot/[id].[hash].hot-update.js';
+  output.hotUpdateMainFilename = '.hot/[hash].hot-update.json';
+  devtool = 'inline-source-map';
+  hints = false;
+  plugins = [new webpack.HotModuleReplacementPlugin(), new webpack.NoEmitOnErrorsPlugin()];
+}
+
 module.exports = {
-  devtool: 'inline-source-map',
+  devtool,
   devServer: {
     contentBase: './www',
     hot: true,
   },
-  entry: {
-    index: ['webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000', './src/index.js'],
+  entry,
+  output,
+  performance: {
+    hints,
   },
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: '[name].bundle.js',
-    publicPath: '/dist/',
-    hotUpdateChunkFilename: '.hot/[id].[hash].hot-update.js',
-    hotUpdateMainFilename: '.hot/[hash].hot-update.json',
-  },
-  mode: 'development', // Change this to use env vars
+  mode: isProduction === true ? 'production' : 'development',
   module: {
     rules: [
       {
@@ -47,5 +62,5 @@ module.exports = {
       },
     ],
   },
-  plugins: [new webpack.HotModuleReplacementPlugin(), new webpack.NoEmitOnErrorsPlugin()],
+  plugins,
 };
