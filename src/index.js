@@ -1,3 +1,3 @@
 import '../style/main.scss';
 
-import './client.js';
+console.log('Hello World');
