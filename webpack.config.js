@@ -5,13 +5,17 @@ module.exports = {
   devtool: 'inline-source-map',
   devServer: {
     contentBase: './www',
-    hot: true
+    hot: true,
   },
-  entry: './src/index.js',
+  entry: {
+    index: ['webpack-hot-middleware/client?path=/__webpack_hmr&timeout=20000', './src/index.js'],
+  },
   output: {
     path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js',
+    filename: '[name].bundle.js',
     publicPath: '/dist/',
+    hotUpdateChunkFilename: '.hot/[id].[hash].hot-update.js',
+    hotUpdateMainFilename: '.hot/[hash].hot-update.json',
   },
   mode: 'development', // Change this to use env vars
   module: {
@@ -43,5 +47,5 @@ module.exports = {
       },
     ],
   },
-  plugins: [new webpack.HotModuleReplacementPlugin()]
+  plugins: [new webpack.HotModuleReplacementPlugin(), new webpack.NoEmitOnErrorsPlugin()],
 };
