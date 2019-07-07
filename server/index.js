@@ -1,5 +1,8 @@
 const express = require('express');
 const app = express();
+var http = require('http').createServer(app);
+var io = require('socket.io')(http);
+
 const path = require('path');
 const webpack = require('webpack');
 const webpackConfig = require('../webpack.config');
@@ -13,9 +16,18 @@ app.use(
   }),
 );
 app.use(require('webpack-hot-middleware')(compiler));
-// static assets
+
 app.use(express.static('public'));
-// main route
 app.get('/', (req, res) => res.sendFile(path.resolve(__dirname, '../www/index.html')));
-// app start up
-app.listen(3000, () => console.log('App listening on port 3000!'));
+
+io.on('connection', function(socket){
+  console.log('a user connected');
+  socket.on('chat message', function(msg){
+    console.log('message:', msg);
+    socket.emit('chat message', 'pong');
+  });
+});
+
+http.listen(3000, function(){
+  console.log('listening on *:3000');
+});
