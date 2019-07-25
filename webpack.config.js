@@ -1,11 +1,48 @@
 const path = require('path');
+const autoprefixer = require('autoprefixer');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
+let devtool, scssLoaders, plugins, styleLoaders;
+const development = process.env.NODE_ENV !== 'production';
+
+scssLoaders = [
+  'css-loader',
+  {
+    loader: 'postcss-loader',
+    options: {
+      plugins: () => [autoprefixer()]
+    }
+  },
+  'sass-loader'
+];
+
+if (development === true) {
+  // Development
+  devtool = 'inline-source-map';
+  styleLoaders = [
+    'style-loader',
+    ...scssLoaders
+  ];
+  plugins = [new webpack.HotModuleReplacementPlugin()];
+} else {
+  // Production  
+  styleLoaders = [{
+      loader: MiniCssExtractPlugin.loader,
+    },
+    ...scssLoaders
+  ];
+  plugins = [new MiniCssExtractPlugin({
+    filename: 'style.css'
+  })];
+}
+
+
 module.exports = {
-  devtool: 'inline-source-map',
+  devtool,
   devServer: {
     contentBase: './www',
-    hot: true
+    hot: development
   },
   entry: './src/index.js',
   output: {
@@ -13,10 +50,9 @@ module.exports = {
     filename: 'bundle.js',
     publicPath: '/dist/',
   },
-  mode: 'development', // Change this to use env vars
+  mode: development ? 'development' : 'produdction',
   module: {
-    rules: [
-      {
+    rules: [{
         test: /\.js$/,
         exclude: /(node_modules)/,
         use: {
@@ -28,20 +64,10 @@ module.exports = {
         },
       },
       {
-        test: /\.scss$/,
-        use: [
-          {
-            loader: 'style-loader', // creates style nodes from JS strings
-          },
-          {
-            loader: 'css-loader', // translates CSS into CommonJS
-          },
-          {
-            loader: 'sass-loader', // compiles Sass to CSS
-          },
-        ],
+        test: /\.(sa|sc|c)ss$/,
+        use: styleLoaders,
       },
     ],
   },
-  plugins: [new webpack.HotModuleReplacementPlugin()]
+  plugins
 };
